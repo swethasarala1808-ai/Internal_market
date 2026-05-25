@@ -1,21 +1,25 @@
 const multer = require('multer');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-// Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    let resourceType = 'auto';
+    let folder = 'marketing_portal';
+    return {
+      folder,
+      resource_type: resourceType,
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'mov', 'webm', 'zip'],
+      public_id: `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.]/g, '_')}`
+    };
   }
 });
 
@@ -33,12 +37,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const maxSizeMB = parseInt(process.env.MAX_FILE_SIZE_MB) || 20;
-
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: maxSizeMB * 1024 * 1024 }
+  limits: { fileSize: 20 * 1024 * 1024 }
 });
 
 module.exports = upload;

@@ -91,8 +91,8 @@ router.post('/', auth, marketingOnly, upload.array('files', 10), async (req, res
 
     const files = (req.files || []).map(f => ({
       originalName: f.originalname,
-      filename: f.filename,
-      path: `/uploads/${f.filename}`,
+      filename: f.filename || f.public_id,
+      path: f.path || f.secure_url || f.url,
       mimetype: f.mimetype,
       size: f.size
     }));
