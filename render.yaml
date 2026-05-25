@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: internal-market-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://swethasarala1808_db_user:INqA7wi6yzin50sG@cluster0.9vlscd5.mongodb.net/marketing_portal?appName=Cluster0
+      - key: JWT_SECRET
+        value: erpnext_marketing_secret_2024
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+
+  - type: web
+    name: internal-market-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://internal-market-backend.onrender.com
