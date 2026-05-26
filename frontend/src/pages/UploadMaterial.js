@@ -20,6 +20,45 @@ export default function UploadMaterial() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadedMaterial, setUploadedMaterial] = useState(null);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [phones, setPhones] = useState([]);
+  const [currentPhone, setCurrentPhone] = useState(0);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (showWhatsApp) {
+      API.get('/users/internal-phones').then(r => setPhones(r.data.phones || [])).catch(() => {});
+    }
+  }, [showWhatsApp]);
+
+  const sendWhatsAppToAll = () => {
+    if (!uploadedMaterial || phones.length === 0) return;
+    setSending(true);
+    const appUrl = 'https://internal-market.vercel.app';
+    const materialUrl = `${appUrl}/material/${uploadedMaterial._id}`;
+    const msg = `📢 *New Marketing Material Uploaded!*
+
+*${uploadedMaterial.title}*
+📁 Type: ${uploadedMaterial.type.replace('_', ' ')}
+
+👉 View & give feedback:
+${materialUrl}`;
+
+    phones.forEach((phone, index) => {
+      setTimeout(() => {
+        const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
+        const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : \`91\${cleanPhone}\`;
+        const waUrl = \`https://wa.me/\${phoneWithCode}?text=\${encodeURIComponent(msg)}\`;
+        window.open(waUrl, '_blank');
+        setCurrentPhone(index + 1);
+        if (index === phones.length - 1) {
+          setSending(false);
+          setTimeout(() => navigate(\`/material/\${uploadedMaterial._id}\`), 2000);
+        }
+      }, index * 2500);
+    });
+  };
 
   useEffect(() => {
     API.get('/solutions').then(r => setSolutions(r.data.solutions)).catch(console.error);
@@ -56,40 +95,63 @@ export default function UploadMaterial() {
       });
 
       const material = res.data.material;
-      toast.success('Material uploaded! Sending WhatsApp messages...');
-
-      // Get all internal users with phone numbers
-      try {
-        const usersRes = await API.get('/users/internal-phones');
-        const phones = usersRes.data.phones || [];
-        const appUrl = 'https://internal-market.vercel.app';
-        const materialUrl = `${appUrl}/material/${material._id}`;
-        const msg = `📢 *New Marketing Material Uploaded!*\n\n*${material.title}*\n📁 Type: ${material.type.replace('_', ' ')}\n\n👉 View & give feedback:\n${materialUrl}`;
-
-        // Open WhatsApp for each phone number one by one
-        phones.forEach((phone, index) => {
-          const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
-          const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
-          const waUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`;
-          setTimeout(() => {
-            window.open(waUrl, '_blank');
-          }, index * 2000); // Open each WhatsApp 2 seconds apart
-        });
-
-        if (phones.length > 0) {
-          toast.success(`Opening WhatsApp for ${phones.length} team members...`);
-        }
-      } catch (e) {
-        console.log('WhatsApp step skipped');
-      }
-
-      navigate(`/material/${material._id}`);
+      toast.success('Material uploaded! Email notifications sent!');
+      setUploadedMaterial(material);
+      setShowWhatsApp(true);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Upload failed');
     } finally {
       setLoading(false);
     }
   };
+
+  if (showWhatsApp && uploadedMaterial) {
+    return (
+      <div className="page-container" style={{ maxWidth: 600, textAlign: 'center' }}>
+        <div className="card" style={{ padding: 32 }}>
+          <div style={{ fontSize: 60 }}>✅</div>
+          <h2 style={{ color: '#5b21b6', marginBottom: 8 }}>Material Uploaded!</h2>
+          <p style={{ color: '#6b7280', marginBottom: 24 }}>
+            📧 Email sent to all team members.<br/>
+            Now send WhatsApp notification to <strong>{phones.length} members</strong>
+          </p>
+
+          {phones.length > 0 ? (
+            <>
+              <button
+                onClick={sendWhatsAppToAll}
+                disabled={sending}
+                style={{
+                  background: '#25d366', color: 'white', border: 'none',
+                  padding: '16px 32px', borderRadius: 10, fontSize: 18,
+                  fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer',
+                  width: '100%', marginBottom: 12
+                }}>
+                {sending
+                  ? `📱 Sending... (${currentPhone}/${phones.length})`
+                  : `📱 Send WhatsApp to All ${phones.length} Members`}
+              </button>
+              <p style={{ fontSize: 12, color: '#9ca3af' }}>
+                WhatsApp will open for each member. Click Send in each chat.
+              </p>
+            </>
+          ) : (
+            <p style={{ color: '#f59e0b', background: '#fef3c7', padding: 12, borderRadius: 8 }}>
+              ⚠️ No members have added phone numbers yet.<br/>
+              Ask them to add phone in Profile settings.
+            </p>
+          )}
+
+          <button
+            onClick={() => navigate(`/material/${uploadedMaterial._id}`)}
+            style={{ marginTop: 16, background: 'transparent', border: '1px solid #5b21b6',
+              color: '#5b21b6', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', width: '100%' }}>
+            Skip & View Material →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container" style={{ maxWidth: 680 }}>
