@@ -57,3 +57,34 @@ router.get('/staff-list', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// PATCH /api/users/:id - Update staff member
+router.patch('/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'marketing' && req.user.role !== 'admin' && req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const { name, department, phone, isActive } = req.body;
+    const updated = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, department, phone, isActive },
+      { new: true }
+    ).select('-password');
+    res.json({ user: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/users/:id - Delete staff member
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'marketing' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

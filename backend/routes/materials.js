@@ -21,18 +21,18 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
 
   const crypto = require('crypto');
   const timestamp = Math.round(Date.now() / 1000);
-  
+  const folder = 'bas_marketing';
+
   // Determine resource type
-  let resourceType = 'auto';
-  if (mimetype.startsWith('video/')) resourceType = 'video';
-  else if (mimetype === 'application/pdf') resourceType = 'image'; // Cloudinary handles PDFs as images
-  
-  // Correct signature: must match params sent
-  const paramsToSign = `folder=bas_marketing&timestamp=${timestamp}`;
-  const signature = crypto
-    .createHash('sha1')
-    .update(paramsToSign + apiSecret)
-    .digest('hex');
+  let resourceType = 'raw';
+  if (mimetype.startsWith('image/')) resourceType = 'image';
+  else if (mimetype.startsWith('video/')) resourceType = 'video';
+  else if (mimetype === 'application/pdf') resourceType = 'image';
+
+  // Signed upload
+  const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+  const signature = crypto.createHash('sha1')
+    .update(paramsToSign + apiSecret).digest('hex');
 
   const base64Data = buffer.toString('base64');
   const dataUri = `data:${mimetype};base64,${base64Data}`;
@@ -43,17 +43,16 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
   form.append('api_key', apiKey);
   form.append('timestamp', String(timestamp));
   form.append('signature', signature);
-  form.append('folder', 'bas_marketing');
-  form.append('resource_type', resourceType);
+  form.append('folder', folder);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
     { method: 'POST', body: form, headers: form.getHeaders() }
   );
   const data = await response.json();
-  console.log('Cloudinary response:', JSON.stringify(data).substring(0, 200));
-  if (data.error) throw new Error('Cloudinary: ' + data.error.message);
-  return data.secure_url || data.url;
+  console.log('Cloudinary:', data.secure_url || data.error);
+  if (data.error) throw new Error('Upload failed: ' + data.error.message);
+  return data.secure_url;
 }
 
 // GET /api/materials
