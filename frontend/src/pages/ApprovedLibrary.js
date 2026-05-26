@@ -87,7 +87,7 @@ export default function ApprovedLibrary() {
                           {mat.files?.map((f, i) => (
                             <a key={i} href={f.path} target="_blank" rel="noreferrer"
                               onClick={e => e.stopPropagation()}
-                              style={{ fontSize: 12, color: '#00C851', marginRight: 8 }}>
+                              style={{ fontSize: 12, color: '#5b21b6', marginRight: 8 }}>
                               ⬇️ Download
                             </a>
                           ))}

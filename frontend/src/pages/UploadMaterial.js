@@ -37,20 +37,19 @@ export default function UploadMaterial() {
     setSending(true);
     const appUrl = 'https://internal-market.vercel.app';
     const materialUrl = `${appUrl}/material/${uploadedMaterial._id}`;
-    const msg = `📢 *New Marketing Material Uploaded!*
+    const msg = `📢 *New Marketing Material - BAS Portal*
 
 *${uploadedMaterial.title}*
-📁 Type: ${uploadedMaterial.type.replace('_', ' ')}
 
-👉 View & give feedback:
+Type: ${uploadedMaterial.type.replace('_', ' ')}
+
+View & give feedback:
 ${materialUrl}`;
-
     phones.forEach((phone, index) => {
       setTimeout(() => {
         const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
         const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
-        const waUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank');
+        window.open(`https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`, '_blank');
         setCurrentPhone(index + 1);
         if (index === phones.length - 1) {
           setSending(false);
@@ -107,45 +106,29 @@ ${materialUrl}`;
 
   if (showWhatsApp && uploadedMaterial) {
     return (
-      <div className="page-container" style={{ maxWidth: 600, textAlign: 'center' }}>
+      <div className="page-container" style={{ maxWidth: 500, textAlign: 'center' }}>
         <div className="card" style={{ padding: 32 }}>
           <div style={{ fontSize: 60 }}>✅</div>
-          <h2 style={{ color: '#00C851', marginBottom: 8 }}>Material Uploaded!</h2>
-          <p style={{ color: '#6b7280', marginBottom: 24 }}>
+          <h2 style={{ color: 'var(--primary)', marginBottom: 8 }}>Material Uploaded!</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
             📧 Email sent to all team members.<br/>
-            Now send WhatsApp notification to <strong>{phones.length} members</strong>
+            Send WhatsApp to <strong>{phones.length} members</strong>
           </p>
-
           {phones.length > 0 ? (
             <>
-              <button
-                onClick={sendWhatsAppToAll}
-                disabled={sending}
-                style={{
-                  background: '#25d366', color: 'white', border: 'none',
-                  padding: '16px 32px', borderRadius: 10, fontSize: 18,
-                  fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer',
-                  width: '100%', marginBottom: 12
-                }}>
-                {sending
-                  ? `📱 Sending... (${currentPhone}/${phones.length})`
-                  : `📱 Send WhatsApp to All ${phones.length} Members`}
+              <button onClick={sendWhatsAppToAll} disabled={sending}
+                className="btn btn-primary" style={{ width: '100%', marginBottom: 12, background: '#25d366', fontSize: 16, padding: '14px' }}>
+                {sending ? `📱 Sending... (${currentPhone}/${phones.length})` : `📱 Send WhatsApp to All ${phones.length} Members`}
               </button>
-              <p style={{ fontSize: 12, color: '#9ca3af' }}>
-                WhatsApp will open for each member. Click Send in each chat.
-              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>WhatsApp will open for each member. Click Send in each chat.</p>
             </>
           ) : (
             <p style={{ color: '#f59e0b', background: '#fef3c7', padding: 12, borderRadius: 8 }}>
-              ⚠️ No members have added phone numbers yet.<br/>
-              Ask them to add phone in Profile settings.
+              ⚠️ No members have added phone numbers yet.
             </p>
           )}
-
-          <button
-            onClick={() => navigate(`/material/${uploadedMaterial._id}`)}
-            style={{ marginTop: 16, background: 'transparent', border: '1px solid #00C851',
-              color: '#00C851', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', width: '100%' }}>
+          <button onClick={() => navigate(`/material/${uploadedMaterial._id}`)}
+            className="btn btn-outline" style={{ marginTop: 12, width: '100%' }}>
             Skip & View Material →
           </button>
         </div>
@@ -205,7 +188,7 @@ ${materialUrl}`;
                 onDrop={handleDrop}
                 onClick={() => document.getElementById('file-input').click()}
                 style={{
-                  border: `2px dashed ${dragOver ? '#00C851' : '#d1d5db'}`,
+                  border: `2px dashed ${dragOver ? '#5b21b6' : '#d1d5db'}`,
                   borderRadius: 10, padding: 32, textAlign: 'center',
                   cursor: 'pointer', background: dragOver ? '#f5f3ff' : '#fafafa',
                   transition: 'all 0.15s'
