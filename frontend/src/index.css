@@ -296,3 +296,25 @@ body {
 
 /* TOAST */
 .toast-success { background: var(--primary) !important; }
+
+/* Card body */
+.card-body { padding: 16px; }
+
+/* Missing badges */
+.badge-purple { background: #1a1a2e20; color: #1a1a2e; }
+
+/* Feedback bar */
+.feedback-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.feedback-bar-label { width: 100px; font-size: 13px; color: #374151; display: flex; align-items: center; gap: 4px; }
+.feedback-bar-track { flex: 1; background: #f3f4f6; border-radius: 20px; height: 8px; overflow: hidden; }
+.feedback-bar-fill { height: 100%; background: #00C851; border-radius: 20px; transition: width 0.3s; }
+.feedback-bar-count { font-size: 12px; color: #9ca3af; width: 50px; text-align: right; }
+
+/* Material detail image area */
+.material-preview {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  min-height: 220px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; border-radius: 10px; overflow: hidden;
+  margin-bottom: 16px;
+}

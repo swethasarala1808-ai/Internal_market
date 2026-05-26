@@ -40,6 +40,8 @@ const AppRoutes = () => {
         <Route path="/library" element={<PrivateRoute><ApprovedLibrary /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/solutions" element={<PrivateRoute><MarketingRoute><Solutions /></MarketingRoute></PrivateRoute>} />
+        <Route path="/staff" element={<PrivateRoute><StaffList /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
