@@ -44,3 +44,16 @@ router.get('/internal-phones', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET /api/users/staff-list - Marketing team can see all internal staff
+router.get('/staff-list', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'marketing' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const staff = await User.find({ role: 'internal' }, 'name email department phone isActive createdAt').sort({ name: 1 });
+    res.json({ staff });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

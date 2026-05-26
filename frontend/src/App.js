@@ -10,6 +10,7 @@ import MaterialList from './pages/MaterialList';
 import MaterialDetail from './pages/MaterialDetail';
 import UploadMaterial from './pages/UploadMaterial';
 import ApprovedLibrary from './pages/ApprovedLibrary';
+import StaffList from './pages/StaffList';
 import Profile from './pages/Profile';
 import Solutions from './pages/Solutions';
 
