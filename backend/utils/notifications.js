@@ -92,29 +92,11 @@ const notifyNewMaterial = async (material, solution, uploader, internalUsers) =>
 
   // Include WhatsApp links in email for each user who has phone
   for (const user of internalUsers) {
-    let finalHtml = emailHtml;
-
-    // Add WhatsApp click link in email if user has phone
-    if (user.phone) {
-      const waLink = generateWhatsAppLink(user.phone, whatsappMessage);
-      finalHtml = emailHtml.replace(
-        '</div>\n      <div style="background: #eee;',
-        `<div style="margin-top: 16px; text-align: center;">
-          <a href="${waLink}" style="background: #25d366; color: white; padding: 10px 24px; 
-             border-radius: 6px; text-decoration: none; font-size: 14px; display: inline-block;">
-            📱 Open in WhatsApp
-          </a>
-        </div>
-        </div>
-      <div style="background: #eee;`
-      );
-    }
-
     if (user.notifyEmail !== false && user.email) {
       await sendEmailNotification(
         user.email,
         `📢 New Marketing Material: ${material.title}`,
-        finalHtml
+        emailHtml
       );
     }
   }
