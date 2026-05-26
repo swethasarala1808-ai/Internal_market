@@ -23,34 +23,34 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
   const timestamp = Math.round(Date.now() / 1000);
   const folder = 'bas_marketing';
 
-  // Determine resource type
+  // Resource type
   let resourceType = 'raw';
   if (mimetype.startsWith('image/')) resourceType = 'image';
   else if (mimetype.startsWith('video/')) resourceType = 'video';
   else if (mimetype === 'application/pdf') resourceType = 'image';
 
-  // Signed upload
+  // Generate signature
   const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
   const signature = crypto.createHash('sha1')
     .update(paramsToSign + apiSecret).digest('hex');
 
+  // Use URLSearchParams with base64 data URI
   const base64Data = buffer.toString('base64');
   const dataUri = `data:${mimetype};base64,${base64Data}`;
 
-  const FormData = require('form-data');
-  const form = new FormData();
-  form.append('file', dataUri);
-  form.append('api_key', apiKey);
-  form.append('timestamp', String(timestamp));
-  form.append('signature', signature);
-  form.append('folder', folder);
+  const body = new URLSearchParams();
+  body.append('file', dataUri);
+  body.append('api_key', apiKey);
+  body.append('timestamp', String(timestamp));
+  body.append('signature', signature);
+  body.append('folder', folder);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-    { method: 'POST', body: form, headers: form.getHeaders() }
+    { method: 'POST', body: body.toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
   const data = await response.json();
-  console.log('Cloudinary:', data.secure_url || data.error);
+  console.log('Cloudinary result:', data.secure_url ? 'SUCCESS' : data.error?.message);
   if (data.error) throw new Error('Upload failed: ' + data.error.message);
   return data.secure_url;
 }
