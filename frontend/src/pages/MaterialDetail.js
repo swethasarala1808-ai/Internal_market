@@ -131,12 +131,17 @@ export default function MaterialDetail() {
               {material.files?.length > 0 && (
                 <div style={{ marginTop: 14 }}>
                   <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>📎 Files:</div>
-                  {material.files.map((f, i) => (
-                    <a key={i} href={f.path} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"
-                      style={{ marginRight: 8, marginBottom: 8 }}>
-                      ⬇️ {f.originalName}
-                    </a>
-                  ))}
+                  {material.files.map((f, i) => {
+                    const isCloudinary = f.path && (f.path.startsWith('http') || f.path.startsWith('data:'));
+                    const fileUrl = isCloudinary ? f.path : `https://internal-market.onrender.com${f.path}`;
+                    return (
+                      <a key={i} href={fileUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"
+                        style={{ marginRight: 8, marginBottom: 8 }}
+                        onClick={e => { if (!isCloudinary) { e.preventDefault(); alert('This file was uploaded before cloud storage was set up. Please re-upload the file.'); } }}>
+                        ⬇️ {f.originalName}
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </div>
