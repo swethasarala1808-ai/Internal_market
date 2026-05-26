@@ -29,3 +29,18 @@ router.patch('/:id/deactivate', auth, marketingOnly, async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/users/internal-phones - Get all internal user phone numbers
+router.get('/internal-phones', auth, async (req, res) => {
+  try {
+    const users = await User.find({ 
+      role: 'internal', 
+      isActive: true,
+      phone: { $exists: true, $ne: '' }
+    }, 'phone');
+    const phones = users.map(u => u.phone).filter(Boolean);
+    res.json({ phones });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

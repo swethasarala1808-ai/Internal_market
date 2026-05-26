@@ -55,8 +55,35 @@ export default function UploadMaterial() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success('Material uploaded & notifications sent!');
-      navigate(`/material/${res.data.material._id}`);
+      const material = res.data.material;
+      toast.success('Material uploaded! Sending WhatsApp messages...');
+
+      // Get all internal users with phone numbers
+      try {
+        const usersRes = await API.get('/users/internal-phones');
+        const phones = usersRes.data.phones || [];
+        const appUrl = 'https://internal-market.vercel.app';
+        const materialUrl = `${appUrl}/material/${material._id}`;
+        const msg = `📢 *New Marketing Material Uploaded!*\n\n*${material.title}*\n📁 Type: ${material.type.replace('_', ' ')}\n\n👉 View & give feedback:\n${materialUrl}`;
+
+        // Open WhatsApp for each phone number one by one
+        phones.forEach((phone, index) => {
+          const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
+          const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
+          const waUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`;
+          setTimeout(() => {
+            window.open(waUrl, '_blank');
+          }, index * 2000); // Open each WhatsApp 2 seconds apart
+        });
+
+        if (phones.length > 0) {
+          toast.success(`Opening WhatsApp for ${phones.length} team members...`);
+        }
+      } catch (e) {
+        console.log('WhatsApp step skipped');
+      }
+
+      navigate(`/material/${material._id}`);
     } catch (err) {
       toast.error(err.response?.data?.error || 'Upload failed');
     } finally {
