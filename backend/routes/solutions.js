@@ -29,7 +29,7 @@ router.post('/', auth, marketingOnly, async (req, res) => {
   }
 });
 
-// Seed default ERPNext solutions
+// Seed default BAS solutions
 router.post('/seed', auth, marketingOnly, async (req, res) => {
   try {
     const defaultSolutions = [

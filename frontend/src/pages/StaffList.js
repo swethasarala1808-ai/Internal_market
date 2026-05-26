@@ -121,32 +121,52 @@ export default function StaffList() {
       {/* Edit Modal */}
       {editUser && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          padding: 16
         }}>
-          <div className="card" style={{ width: 420, padding: 28 }}>
-            <h3 style={{ marginBottom: 20, fontWeight: 700 }}>✏️ Edit Staff Member</h3>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input className="form-input" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+          <div style={{ background: 'white', borderRadius: 16, width: '100%', maxWidth: 460, padding: 32, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h3 style={{ fontWeight: 800, fontSize: 18, color: 'var(--text)' }}>✏️ Edit Staff Member</h3>
+              <button onClick={() => setEditUser(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#9ca3af' }}>✕</button>
             </div>
-            <div className="form-group">
-              <label className="form-label">Department</label>
-              <input className="form-input" value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} placeholder="e.g. Sales, HR, Finance" />
+
+            <div style={{ background: '#f5f3ff', borderRadius: 10, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16 }}>
+                {editUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{editUser.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{editUser.email}</div>
+              </div>
             </div>
-            <div className="form-group">
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label className="form-label">Full Name</label>
+                <input className="form-input" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Department</label>
+                <input className="form-input" value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} placeholder="e.g. Sales, HR" />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
               <label className="form-label">Phone (WhatsApp)</label>
               <input className="form-input" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} placeholder="+91XXXXXXXXXX" />
             </div>
-            <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <input type="checkbox" checked={editForm.isActive} onChange={e => setEditForm({...editForm, isActive: e.target.checked})} />
-                <span className="form-label" style={{ margin: 0 }}>Active Account</span>
+
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid var(--border)' }}>
+                <input type="checkbox" checked={editForm.isActive} onChange={e => setEditForm({...editForm, isActive: e.target.checked})} style={{ width: 16, height: 16 }} />
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Active Account (can login)</span>
               </label>
             </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-              <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1 }}>💾 Save Changes</button>
-              <button onClick={() => setEditUser(null)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1, padding: '12px', fontSize: 15 }}>💾 Save Changes</button>
+              <button onClick={() => setEditUser(null)} className="btn btn-outline" style={{ flex: 1, padding: '12px', fontSize: 15 }}>Cancel</button>
             </div>
           </div>
         </div>

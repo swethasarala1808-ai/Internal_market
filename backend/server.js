@@ -36,7 +36,7 @@ app.use('/api/solutions', solutionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'ERPNext Marketing Portal API is running' });
+  res.json({ status: 'OK', message: 'BAS Marketing Portal API is running' });
 });
 
 // Connect to MongoDB
