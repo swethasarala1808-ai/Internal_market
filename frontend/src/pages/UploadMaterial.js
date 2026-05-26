@@ -48,13 +48,13 @@ ${materialUrl}`;
     phones.forEach((phone, index) => {
       setTimeout(() => {
         const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
-        const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : \`91\${cleanPhone}\`;
-        const waUrl = \`https://wa.me/\${phoneWithCode}?text=\${encodeURIComponent(msg)}\`;
+        const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
+        const waUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(msg)}`;
         window.open(waUrl, '_blank');
         setCurrentPhone(index + 1);
         if (index === phones.length - 1) {
           setSending(false);
-          setTimeout(() => navigate(\`/material/\${uploadedMaterial._id}\`), 2000);
+          setTimeout(() => navigate(`/material/${uploadedMaterial._id}`), 2000);
         }
       }, index * 2500);
     });
