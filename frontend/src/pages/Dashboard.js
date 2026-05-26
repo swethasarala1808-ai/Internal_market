@@ -47,7 +47,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-3" style={{ marginBottom: 28 }}>
-        <StatCard label="Total Materials" value={stats.total} icon="📁" color="#5b21b6" to="/materials" />
+        <StatCard label="Total Materials" value={stats.total} icon="📁" color="#00C851" to="/materials" />
         <StatCard label="Approved Library" value={stats.approved} icon="✅" color="#059669" to="/library" />
         <StatCard label="Pending Review" value={stats.pending} icon="⏳" color="#f59e0b" to="/materials?status=pending_review" />
       </div>
@@ -79,7 +79,7 @@ export default function Dashboard() {
                 </Link>
               ))
             )}
-            <Link to="/materials" style={{ display: 'block', textAlign: 'center', marginTop: 12, color: '#5b21b6', fontWeight: 600, fontSize: 14 }}>
+            <Link to="/materials" style={{ display: 'block', textAlign: 'center', marginTop: 12, color: '#00C851', fontWeight: 600, fontSize: 14 }}>
               View All →
             </Link>
           </div>

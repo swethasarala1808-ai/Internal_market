@@ -48,7 +48,7 @@ export default function Profile() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
             <div style={{
               width: 60, height: 60, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #5b21b6, #7c3aed)',
+              background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontSize: 24, fontWeight: 800
             }}>

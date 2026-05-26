@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 export default function Solutions() {
   const [solutions, setSolutions] = useState([]);
-  const [form, setForm] = useState({ name: '', description: '', icon: '📦', color: '#5b21b6' });
+  const [form, setForm] = useState({ name: '', description: '', icon: '📦', color: '#00C851' });
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
 
@@ -20,7 +20,7 @@ export default function Solutions() {
     try {
       await API.post('/solutions', form);
       toast.success('Solution created!');
-      setForm({ name: '', description: '', icon: '📦', color: '#5b21b6' });
+      setForm({ name: '', description: '', icon: '📦', color: '#00C851' });
       load();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed');

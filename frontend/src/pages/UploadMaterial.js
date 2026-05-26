@@ -110,7 +110,7 @@ ${materialUrl}`;
       <div className="page-container" style={{ maxWidth: 600, textAlign: 'center' }}>
         <div className="card" style={{ padding: 32 }}>
           <div style={{ fontSize: 60 }}>✅</div>
-          <h2 style={{ color: '#5b21b6', marginBottom: 8 }}>Material Uploaded!</h2>
+          <h2 style={{ color: '#00C851', marginBottom: 8 }}>Material Uploaded!</h2>
           <p style={{ color: '#6b7280', marginBottom: 24 }}>
             📧 Email sent to all team members.<br/>
             Now send WhatsApp notification to <strong>{phones.length} members</strong>
@@ -144,8 +144,8 @@ ${materialUrl}`;
 
           <button
             onClick={() => navigate(`/material/${uploadedMaterial._id}`)}
-            style={{ marginTop: 16, background: 'transparent', border: '1px solid #5b21b6',
-              color: '#5b21b6', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', width: '100%' }}>
+            style={{ marginTop: 16, background: 'transparent', border: '1px solid #00C851',
+              color: '#00C851', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', width: '100%' }}>
             Skip & View Material →
           </button>
         </div>
@@ -205,7 +205,7 @@ ${materialUrl}`;
                 onDrop={handleDrop}
                 onClick={() => document.getElementById('file-input').click()}
                 style={{
-                  border: `2px dashed ${dragOver ? '#5b21b6' : '#d1d5db'}`,
+                  border: `2px dashed ${dragOver ? '#00C851' : '#d1d5db'}`,
                   borderRadius: 10, padding: 32, textAlign: 'center',
                   cursor: 'pointer', background: dragOver ? '#f5f3ff' : '#fafafa',
                   transition: 'all 0.15s'
