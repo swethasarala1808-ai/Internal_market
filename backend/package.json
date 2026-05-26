@@ -18,9 +18,7 @@
     "nodemailer": "^6.9.8",
     "axios": "^1.6.2",
     "uuid": "^9.0.1",
-    "express-validator": "^7.0.1",
-    "cloudinary": "^2.0.0",
-    "multer-storage-cloudinary": "^4.0.0"
+    "express-validator": "^7.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
