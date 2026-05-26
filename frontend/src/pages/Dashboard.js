@@ -43,7 +43,7 @@ export default function Dashboard() {
     <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">👋 Welcome, {user?.name?.split(' ')[0]}!</h1>
-        <p className="page-subtitle">ERPNext Internal Marketing Portal</p>
+        <p className="page-subtitle">BAS Internal Marketing Portal</p>
       </div>
 
       <div className="grid grid-3" style={{ marginBottom: 28 }}>

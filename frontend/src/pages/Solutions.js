@@ -51,7 +51,7 @@ export default function Solutions() {
     <div className="page-container" style={{ maxWidth: 800 }}>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="page-title">🏷️ ERPNext Solutions</h1>
+          <h1 className="page-title">🏷️ BAS Solutions</h1>
           <p className="page-subtitle">Manage solution categories for marketing materials</p>
         </div>
         <button className="btn btn-outline" onClick={handleSeed} disabled={seeding}>
@@ -104,7 +104,7 @@ export default function Solutions() {
               <div style={{ textAlign: 'center', padding: 30 }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
             ) : solutions.length === 0 ? (
               <p style={{ padding: 20, color: '#9ca3af', textAlign: 'center' }}>
-                No solutions yet. Click "Seed Default Solutions" to add ERPNext defaults!
+                No solutions yet. Click "Seed Default Solutions" to add BAS defaults!
               </p>
             ) : solutions.map(s => (
               <div key={s._id} style={{ display: 'flex', alignItems: 'center', gap: 12,

@@ -23,7 +23,7 @@ export default function ApprovedLibrary() {
     <div className="page-container">
       <div className="page-header">
         <h1 className="page-title">✅ Approved Material Library</h1>
-        <p className="page-subtitle">{total} approved materials grouped by ERPNext solution</p>
+        <p className="page-subtitle">{total} approved materials grouped by BAS solution</p>
       </div>
 
       {/* Solution tabs */}

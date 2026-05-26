@@ -29,7 +29,7 @@ export default function Navbar() {
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', height: 56 }}>
         <Link to="/" style={{ fontWeight: 800, fontSize: 16, color: 'white', marginRight: 32, whiteSpace: 'nowrap' }}>
-          🎯 ERPNext Portal
+          🎯 BAS Portal
         </Link>
 
         {/* Desktop links */}

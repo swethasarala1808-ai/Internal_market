@@ -27,7 +27,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <h1>🎯 ERPNext Portal</h1>
+          <h1>🎯 BAS Portal</h1>
           <p>Internal Marketing Feedback Platform</p>
         </div>
         <form onSubmit={handleSubmit}>

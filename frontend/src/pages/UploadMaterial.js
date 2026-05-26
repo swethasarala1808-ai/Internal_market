@@ -82,7 +82,7 @@ export default function UploadMaterial() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div className="form-group">
-                <label className="form-label">ERPNext Solution *</label>
+                <label className="form-label">BAS Solution *</label>
                 <select className="form-control" value={form.solution}
                   onChange={e => setForm({...form, solution: e.target.value})} required>
                   <option value="">Select solution...</option>
