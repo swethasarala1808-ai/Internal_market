@@ -83,6 +83,17 @@ export default function MaterialDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this material? This cannot be undone.')) return;
+    try {
+      await API.delete(`/materials/${id}`);
+      toast.success('Material deleted!');
+      navigate('/materials');
+    } catch (err) {
+      toast.error('Failed to delete');
+    }
+  };
+
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
   if (!material) return null;
 
@@ -162,6 +173,10 @@ export default function MaterialDetail() {
                   </button>
                   <button className="btn btn-danger btn-sm" onClick={() => handleStatusChange('rejected')}>
                     ❌ Reject
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={handleDelete}
+                    style={{ background: '#7f1d1d' }}>
+                    🗑️ Delete
                   </button>
                 </div>
               </div>
