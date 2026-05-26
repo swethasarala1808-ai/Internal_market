@@ -88,7 +88,7 @@ const notifyNewMaterial = async (material, solution, uploader, internalUsers) =>
     </div>
   `;
 
-  const whatsappMessage = `📢 *New Marketing Material Uploaded!*\n\n*${material.title}*\n📁 Type: ${material.type.replace('_', ' ')}\n🏷️ Solution: ${solution.name}\n👤 By: ${uploader.name}\n${material.description ? `📝 ${material.description}\n` : ''}\n👉 View & give feedback:\n${materialUrl}`;
+  const whatsappMessage = `📢 *New Marketing Material - BAS Portal*\n\n*${material.title}*\n\nType: ${material.type.replace('_', ' ')}\nSolution: ${solution.name}\nUploaded by: ${uploader.name}\n${material.description ? `Description: ${material.description}\n` : ''}\nView & give feedback:\n${materialUrl}`;
 
   // Include WhatsApp links in email for each user who has phone
   for (const user of internalUsers) {

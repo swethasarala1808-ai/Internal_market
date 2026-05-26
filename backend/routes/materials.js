@@ -15,33 +15,44 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    // Fallback: return base64 data URL if no Cloudinary
     const base64 = buffer.toString('base64');
     return `data:${mimetype};base64,${base64}`;
   }
 
+  const crypto = require('crypto');
+  const timestamp = Math.round(Date.now() / 1000);
+  
+  // Determine resource type
+  let resourceType = 'auto';
+  if (mimetype.startsWith('video/')) resourceType = 'video';
+  else if (mimetype === 'application/pdf') resourceType = 'image'; // Cloudinary handles PDFs as images
+  
+  // Correct signature: must match params sent
+  const paramsToSign = `folder=bas_marketing&timestamp=${timestamp}`;
+  const signature = crypto
+    .createHash('sha1')
+    .update(paramsToSign + apiSecret)
+    .digest('hex');
+
   const base64Data = buffer.toString('base64');
   const dataUri = `data:${mimetype};base64,${base64Data}`;
 
-  const timestamp = Math.round(Date.now() / 1000);
-  const crypto = require('crypto');
-  const signature = crypto
-    .createHash('sha1')
-    .update(`folder=bas_marketing&timestamp=${timestamp}${apiSecret}`)
-    .digest('hex');
-
-  const formData = new URLSearchParams();
-  formData.append('file', dataUri);
-  formData.append('api_key', apiKey);
-  formData.append('timestamp', timestamp);
-  formData.append('signature', signature);
-  formData.append('folder', 'bas_marketing');
+  const FormData = require('form-data');
+  const form = new FormData();
+  form.append('file', dataUri);
+  form.append('api_key', apiKey);
+  form.append('timestamp', String(timestamp));
+  form.append('signature', signature);
+  form.append('folder', 'bas_marketing');
+  form.append('resource_type', resourceType);
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-    { method: 'POST', body: formData }
+    `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+    { method: 'POST', body: form, headers: form.getHeaders() }
   );
   const data = await response.json();
+  console.log('Cloudinary response:', JSON.stringify(data).substring(0, 200));
+  if (data.error) throw new Error('Cloudinary: ' + data.error.message);
   return data.secure_url || data.url;
 }
 
