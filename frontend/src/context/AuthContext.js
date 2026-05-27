@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     if (token) {
       API.get('/auth/me')
-        .then(res => setUser(res.data.user))
+        .then(res => { setUser(res.data.user); localStorage.setItem('user', JSON.stringify(res.data.user)); })
         .catch(() => { localStorage.clear(); setUser(null); })
         .finally(() => setLoading(false));
     } else {
@@ -21,8 +21,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password) => {
-    const res = await API.post('/auth/login', { email, password });
+  // Supports both: login(userObj, token) and login(email, password)
+  const login = async (userOrEmail, tokenOrPassword) => {
+    // If first arg is object, it's login(userObj, token)
+    if (typeof userOrEmail === 'object') {
+      const userData = userOrEmail;
+      const token = tokenOrPassword;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      return userData;
+    }
+    // Otherwise login(email, password)
+    const res = await API.post('/auth/login', { email: userOrEmail, password: tokenOrPassword });
     localStorage.setItem('token', res.data.token);
     localStorage.setItem('user', JSON.stringify(res.data.user));
     setUser(res.data.user);

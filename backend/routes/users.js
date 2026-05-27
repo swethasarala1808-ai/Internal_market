@@ -88,3 +88,16 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET /api/users/marketing-list - See all marketing team members
+router.get('/marketing-list', auth, async (req, res) => {
+  try {
+    const marketingTeam = await User.find(
+      { role: 'marketing', isActive: true },
+      'name email department phone isActive createdAt'
+    ).sort({ name: 1 });
+    res.json({ marketingTeam });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
