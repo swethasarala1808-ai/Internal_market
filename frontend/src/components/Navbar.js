@@ -52,6 +52,9 @@ export default function Navbar() {
           <Link to="/upload" style={linkStyle(isActive('/upload'))}>+ Upload</Link>
         )}
         {user?.role === 'admin' && (
+          <Link to="/staff" style={linkStyle(isActive('/staff'))}>👥 Staff</Link>
+        )}
+        {user?.role === 'admin' && (
           <Link to="/solutions" style={linkStyle(isActive('/solutions'))}>Solutions</Link>
         )}
         {['admin', 'director'].includes(user?.role) && (
