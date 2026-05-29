@@ -35,6 +35,27 @@ app.use('/api/users', userRoutes);
 app.use('/api/solutions', solutionRoutes);
 
 // Health check
+// ONE-TIME SETUP: Create admin user
+app.post('/api/setup-admin', async (req, res) => {
+  try {
+    const { secret } = req.body;
+    if (secret !== 'BAS_SETUP_2024') return res.status(403).json({ error: 'Wrong secret' });
+    const User = require('./models/User');
+    // Delete all users
+    const del = await User.deleteMany({});
+    // Create admin
+    const admin = await User.create({
+      name: 'Swetha S',
+      email: 'swethasarala1808@gmail.com',
+      password: 'Swetha@123',
+      role: 'admin',
+      department: 'Management',
+      isActive: true
+    });
+    res.json({ message: 'Done! Admin created.', email: admin.email, deleted: del.deletedCount });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'BAS Marketing Portal API is running' });
 });
