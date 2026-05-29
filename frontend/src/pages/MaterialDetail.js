@@ -73,6 +73,16 @@ export default function MaterialDetail() {
     }
   };
 
+  const handleSendToDirector = async () => {
+    if (!window.confirm('Send this material to Director for approval?')) return;
+    try {
+      await API.post(`/materials/${id}/send-to-director`);
+      toast.success('Sent to Director!');
+      const res = await API.get(`/materials/${id}`);
+      setMaterial(res.data.material);
+    } catch (err) { toast.error('Failed to send'); }
+  };
+
   const handleStatusChange = async (status) => {
     try {
       const res = await API.patch(`/materials/${id}/status`, { status });
@@ -174,6 +184,17 @@ export default function MaterialDetail() {
                   <button className="btn btn-danger btn-sm" onClick={() => handleStatusChange('rejected')}>
                     ❌ Reject
                   </button>
+                  {!material.sentToDirector && (
+                    <button className="btn btn-sm" style={{ background: '#1a1a2e', color: 'white' }}
+                      onClick={handleSendToDirector}>
+                      📋 Send to Director
+                    </button>
+                  )}
+                  {material.sentToDirector && (
+                    <span style={{ background: '#fef3c7', color: '#92400e', padding: '5px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600 }}>
+                      📋 Sent to Director: {material.directorStatus || 'pending'}
+                    </span>
+                  )}
                   <button className="btn btn-danger btn-sm" onClick={handleDelete}
                     style={{ background: '#7f1d1d' }}>
                     🗑️ Delete

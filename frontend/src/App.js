@@ -11,6 +11,8 @@ import MaterialDetail from './pages/MaterialDetail';
 import UploadMaterial from './pages/UploadMaterial';
 import ApprovedLibrary from './pages/ApprovedLibrary';
 import StaffList from './pages/StaffList';
+import AdminPanel from './pages/AdminPanel';
+import DirectorView from './pages/DirectorView';
 import Profile from './pages/Profile';
 import Solutions from './pages/Solutions';
 
@@ -41,6 +43,8 @@ const AppRoutes = () => {
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         <Route path="/solutions" element={<PrivateRoute><MarketingRoute><Solutions /></MarketingRoute></PrivateRoute>} />
         <Route path="/staff" element={<PrivateRoute><StaffList /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
+        <Route path="/director" element={<PrivateRoute><DirectorView /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

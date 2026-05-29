@@ -193,4 +193,88 @@ router.delete('/:id', auth, marketingOnly, async (req, res) => {
   }
 });
 
+// POST /api/materials/:id/send-to-director - Admin sends material to director
+router.post('/:id/send-to-director', auth, async (req, res) => {
+  try {
+    if (!['admin', 'marketing'].includes(req.user.role)) return res.status(403).json({ error: 'Not allowed' });
+    const material = await Material.findByIdAndUpdate(req.params.id, {
+      sentToDirector: true, sentToDirectorAt: new Date(),
+      sentToDirectorBy: req.user._id, status: 'sent_to_director', directorStatus: 'pending'
+    }, { new: true }).populate('solution', 'name').populate('uploadedBy', 'name email');
+    if (!material) return res.status(404).json({ error: 'Not found' });
+
+    // Notify all directors by email
+    const User = require('../models/User');
+    const { notifyNewMaterial } = require('../utils/notifications');
+    const directors = await User.find({ role: 'director', isActive: true });
+    const nodemailer = require('nodemailer');
+    if (process.env.EMAIL_USER && directors.length > 0) {
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com', port: 587, secure: false,
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+      });
+      const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
+      for (const dir of directors) {
+        await transporter.sendMail({
+          from: `"BAS Portal" <${process.env.EMAIL_USER}>`,
+          to: dir.email,
+          subject: `📋 Material Needs Your Approval: ${material.title}`,
+          html: `<div style="font-family:Arial;max-width:600px;margin:0 auto">
+            <div style="background:#1a1a2e;color:white;padding:20px;border-radius:8px 8px 0 0">
+              <h2>📋 Material Awaiting Your Approval</h2>
+              <p style="opacity:0.8">BAS Internal Marketing Portal</p>
+            </div>
+            <div style="background:#f9f9f9;padding:24px;border:1px solid #e0e0e0">
+              <h3>${material.title}</h3>
+              <p><b>Type:</b> ${material.type}</p>
+              <p><b>Solution:</b> ${material.solution?.name}</p>
+              <p><b>Uploaded by:</b> ${material.uploadedBy?.name}</p>
+              <p><b>Sent by:</b> ${req.user.name}</p>
+              <div style="text-align:center;margin:24px 0">
+                <a href="${appUrl}/material/${material._id}" style="background:#1a1a2e;color:white;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;display:inline-block">
+                  👉 Review & Approve
+                </a>
+              </div>
+            </div>
+          </div>`
+        }).catch(console.error);
+      }
+    }
+    res.json({ material, message: 'Sent to director!' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// POST /api/materials/:id/director-review - Director approves or rejects
+router.post('/:id/director-review', auth, async (req, res) => {
+  try {
+    if (!['admin', 'director'].includes(req.user.role)) return res.status(403).json({ error: 'Director only' });
+    const { decision, note } = req.body; // decision: 'approved' or 'rejected'
+    const update = {
+      directorStatus: decision,
+      directorNote: note,
+      directorReviewedAt: new Date(),
+      directorReviewedBy: req.user._id,
+      status: decision === 'approved' ? 'director_approved' : 'director_rejected'
+    };
+    if (decision === 'approved') { update.isApproved = true; update.approvedAt = new Date(); update.approvedBy = req.user._id; }
+    const material = await Material.findByIdAndUpdate(req.params.id, update, { new: true })
+      .populate('solution', 'name').populate('uploadedBy', 'name email');
+    if (!material) return res.status(404).json({ error: 'Not found' });
+    res.json({ material, message: `Material ${decision} by director!` });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// GET /api/materials/director-queue - Director sees materials sent to them
+router.get('/director-queue', auth, async (req, res) => {
+  try {
+    if (!['admin', 'director'].includes(req.user.role)) return res.status(403).json({ error: 'Director only' });
+    const materials = await Material.find({ sentToDirector: true })
+      .populate('solution', 'name icon color')
+      .populate('uploadedBy', 'name email')
+      .populate('sentToDirectorBy', 'name')
+      .sort({ sentToDirectorAt: -1 });
+    res.json({ materials, total: materials.length });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

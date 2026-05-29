@@ -48,10 +48,18 @@ export default function Navbar() {
         <Link to="/dashboard" style={linkStyle(isActive('/dashboard'))}>Dashboard</Link>
         <Link to="/materials" style={linkStyle(isActive('/materials'))}>Materials</Link>
         <Link to="/library" style={linkStyle(isActive('/library'))}>✅ Library</Link>
-        {user?.role === 'marketing' && (
+        {['admin', 'marketing'].includes(user?.role) && (
           <Link to="/upload" style={linkStyle(isActive('/upload'))}>+ Upload</Link>
         )}
-        <Link to="/solutions" style={linkStyle(isActive('/solutions'))}>Solutions</Link>
+        {['admin', 'marketing'].includes(user?.role) && (
+          <Link to="/solutions" style={linkStyle(isActive('/solutions'))}>Solutions</Link>
+        )}
+        {['admin', 'director'].includes(user?.role) && (
+          <Link to="/director" style={linkStyle(isActive('/director'))}>👔 Approvals</Link>
+        )}
+        {user?.role === 'admin' && (
+          <Link to="/admin" style={{...linkStyle(isActive('/admin')), background: isActive('/admin') ? '#dc262620' : 'transparent', color: isActive('/admin') ? '#dc2626' : '#c8d0e0'}}>🔑 Admin</Link>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
