@@ -15,69 +15,53 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    const base64 = buffer.toString('base64');
-    return `data:${mimetype};base64,${base64}`;
+    return "data:" + mimetype + ";base64," + buffer.toString("base64");
   }
 
-  const crypto = require('crypto');
+  const crypto = require("crypto");
   const timestamp = Math.round(Date.now() / 1000);
-  const folder = 'bas_marketing';
+  const folder = "bas_marketing";
 
-  // Resource type for Cloudinary
-  let resourceType = 'raw';
-  if (mimetype.startsWith('image/')) resourceType = 'image';
-  else if (mimetype.startsWith('video/')) resourceType = 'video';
-  // PDF goes as 'image' resource type in Cloudinary
+  let resourceType = "raw";
+  if (mimetype.startsWith("image/")) resourceType = "image";
+  else if (mimetype.startsWith("video/")) resourceType = "video";
+  const uploadType = mimetype === "application/pdf" ? "image" : resourceType;
 
-  // Generate proper signature
-  const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
-  const signature = crypto.createHash('sha1')
-    .update(paramsToSign + apiSecret).digest('hex');
+  const paramsToSign = "folder=" + folder + "&timestamp=" + timestamp;
+  const signature = crypto.createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
 
-  // Build multipart form using node's built-in
-  const base64Data = buffer.toString('base64');
-  const dataUri = `data:${mimetype};base64,${base64Data}`;
+  const CRLF = "\r\n";
 
-  // Use form-data style with boundary
-  const boundary = '----FormBoundary' + Date.now();
-  const parts = [
-    `--${boundary}
-Content-Disposition: form-data; name="file"
+  const boundary = "BASUpload" + Date.now();
+  const base64Data = buffer.toString("base64");
+  const dataUri = "data:" + mimetype + ";base64," + base64Data;
 
-${dataUri}`,
-    `--${boundary}
-Content-Disposition: form-data; name="api_key"
+  const addField = (name, value) => {
+    return "--" + boundary + CRLF +
+      "Content-Disposition: form-data; name=\"" + name + "\"" + CRLF + CRLF +
+      value + CRLF;
+  };
 
-${apiKey}`,
-    `--${boundary}
-Content-Disposition: form-data; name="timestamp"
+  const body = Buffer.from(
+    addField("file", dataUri) +
+    addField("api_key", apiKey) +
+    addField("timestamp", String(timestamp)) +
+    addField("signature", signature) +
+    addField("folder", folder) +
+    "--" + boundary + "--" + CRLF
+  );
 
-${timestamp}`,
-    `--${boundary}
-Content-Disposition: form-data; name="signature"
-
-${signature}`,
-    `--${boundary}
-Content-Disposition: form-data; name="folder"
-
-${folder}`,
-    `--${boundary}--`
-  ];
-  const body = parts.join('
-');
-
-  const uploadType = mimetype === 'application/pdf' ? 'image' : resourceType;
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/${uploadType}/upload`,
+    "https://api.cloudinary.com/v1_1/" + cloudName + "/" + uploadType + "/upload",
     {
-      method: 'POST',
+      method: "POST",
       body,
-      headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` }
+      headers: { "Content-Type": "multipart/form-data; boundary=" + boundary }
     }
   );
   const data = await response.json();
-  console.log('Cloudinary:', data.secure_url ? 'SUCCESS ' + data.secure_url.substring(0,60) : 'ERROR: ' + JSON.stringify(data.error));
-  if (data.error) throw new Error('Cloudinary upload failed: ' + data.error.message);
+  console.log("Cloudinary:", data.secure_url ? "SUCCESS" : "ERROR: " + JSON.stringify(data.error));
+  if (data.error) throw new Error("Upload failed: " + data.error.message);
   return data.secure_url;
 }
 
