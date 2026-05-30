@@ -1,152 +1,90 @@
 const nodemailer = require('nodemailer');
 
-// Email transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-};
+const createTransporter = () => nodemailer.createTransport({
+  host: 'smtp.gmail.com', port: 587, secure: false,
+  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+});
 
-// Send email notification
-const sendEmailNotification = async (to, subject, html) => {
+const sendEmail = async (to, subject, html) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
   try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn('⚠️ Email not configured. Skipping.');
-      return false;
-    }
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"BAS Portal" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html
+    await createTransporter().sendMail({
+      from: `"BAS Portal" <${process.env.EMAIL_USER}>`, to, subject, html
     });
     console.log(`📧 Email sent to ${to}`);
-    return true;
-  } catch (err) {
-    console.error('❌ Email error:', err.message);
-    return false;
-  }
+  } catch (e) { console.error('Email error:', e.message); }
 };
 
-// Generate WhatsApp wa.me link (same as Pet Clinic)
-const generateWhatsAppLink = (phone, message) => {
-  const cleanPhone = phone.replace(/\s/g, '').replace('+', '');
-  const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
-  const encodedMsg = encodeURIComponent(message);
-  return `https://wa.me/${phoneWithCode}?text=${encodedMsg}`;
-};
-
-// Log WhatsApp link (same approach as Pet Clinic _log_whatsapp)
-const sendWhatsAppNotification = async (phone, message) => {
-  try {
-    const waLink = generateWhatsAppLink(phone, message);
-    console.log(`📱 WhatsApp link for ${phone}: ${waLink}`);
-    return waLink;
-  } catch (err) {
-    console.error('❌ WhatsApp error:', err.message);
-    return null;
-  }
-};
-
-// Notify all internal users about new material upload
-const notifyNewMaterial = async (material, solution, uploader, internalUsers) => {
-  const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
-  const materialUrl = `${appUrl}/material/${material._id}`;
-
-  const emailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: #5b21b6; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-        <h2 style="margin: 0;">📢 New Marketing Material Uploaded</h2>
-        <p style="margin: 5px 0 0; opacity: 0.8;">BAS Internal Portal</p>
-      </div>
-      <div style="background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0;">
-        <h3 style="color: #333; margin-top: 0;">${material.title}</h3>
-        <p><strong>Type:</strong> ${material.type.replace('_', ' ').toUpperCase()}</p>
-        <p><strong>Solution:</strong> ${solution.name}</p>
-        <p><strong>Uploaded by:</strong> ${uploader.name}</p>
-        ${material.description ? `<p><strong>Description:</strong> ${material.description}</p>` : ''}
-        <div style="margin: 24px 0; text-align: center;">
-          <a href="${materialUrl}" style="background: #5b21b6; color: white; padding: 12px 28px; 
-             border-radius: 6px; text-decoration: none; font-size: 16px; display: inline-block;">
-            👉 View & Give Feedback
-          </a>
-        </div>
-        <p style="color: #666; font-size: 13px;">
-          Your feedback helps the marketing team improve our materials. It only takes 30 seconds!
-        </p>
-      </div>
-      <div style="background: #eee; padding: 12px; border-radius: 0 0 8px 8px; text-align: center; color: #888; font-size: 12px;">
-        BAS Internal Marketing Portal
-      </div>
+const materialCard = (material, solution, uploader, actionUrl, actionLabel, accentColor = '#1a1a2e') => `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+  <div style="background:${accentColor};color:white;padding:20px;border-radius:8px 8px 0 0">
+    <h2 style="margin:0">📢 BAS Internal Marketing Portal</h2>
+  </div>
+  <div style="background:#f9f9f9;padding:24px;border:1px solid #e0e0e0">
+    <h3 style="color:#1a1a2e;margin-top:0">${material.title}</h3>
+    <p><b>Type:</b> ${material.type?.replace('_',' ')}</p>
+    <p><b>Solution:</b> ${solution?.name || ''}</p>
+    <p><b>Uploaded by:</b> ${uploader?.name || ''}</p>
+    ${material.description ? `<p><b>Description:</b> ${material.description}</p>` : ''}
+    <div style="text-align:center;margin:24px 0">
+      <a href="${actionUrl}" style="background:${accentColor};color:white;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;display:inline-block">${actionLabel}</a>
     </div>
-  `;
+  </div>
+  <div style="background:#eee;padding:12px;border-radius:0 0 8px 8px;text-align:center;color:#888;font-size:12px">BAS Internal Marketing Portal</div>
+</div>`;
 
-  const whatsappMessage = `📢 *New Marketing Material - BAS Portal*\n\n*${material.title}*\n\nType: ${material.type.replace('_', ' ')}\nSolution: ${solution.name}\nUploaded by: ${uploader.name}\n${material.description ? `Description: ${material.description}\n` : ''}\nView & give feedback:\n${materialUrl}`;
-
-  // Include WhatsApp links in email for each user who has phone
-  for (const user of internalUsers) {
-    if (user.notifyEmail !== false && user.email) {
-      await sendEmailNotification(
-        user.email,
-        `📢 New Marketing Material: ${material.title}`,
-        emailHtml
-      );
+// 1. Notify ALL registered users when material uploaded (internal + marketing + admin + director)
+const notifyNewMaterial = async (material, solution, uploader, allUsers) => {
+  const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
+  const url = `${appUrl}/material/${material._id}`;
+  const html = materialCard(material, solution, uploader, url, '👉 View & Give Feedback');
+  
+  for (const u of allUsers) {
+    if (u.notifyEmail !== false && u.email && u._id.toString() !== uploader._id.toString()) {
+      await sendEmail(u.email, `📢 New Material: ${material.title}`, html);
     }
   }
 };
 
-// Notify marketing team when new feedback arrives
-const notifyMarketingFeedback = async (material, feedbackUser, feedback, marketingUsers) => {
+// 2. Notify directors when admin sends report to director
+const notifyDirectors = async (material, solution, sender, directors) => {
   const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
-  const materialUrl = `${appUrl}/material/${material._id}`;
+  const url = `${appUrl}/director`;
+  const html = materialCard(material, solution, sender, url, '📋 Review & Approve', '#059669') 
+    .replace('<h2 style="margin:0">📢 BAS Internal Marketing Portal</h2>', 
+             '<h2 style="margin:0">📋 Material Sent for Your Approval</h2>');
 
-  const ratingEmoji = {
-    excellent: '🌟', good: '👍', okay: '😐', needs_work: '⚠️', bad: '👎'
-  };
-
-  const emailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: #059669; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-        <h2 style="margin: 0;">💬 New Feedback Received</h2>
-        <p style="margin: 5px 0 0; opacity: 0.8;">BAS Internal Portal</p>
-      </div>
-      <div style="background: #f9f9f9; padding: 24px; border: 1px solid #e0e0e0;">
-        <p><strong>Material:</strong> ${material.title}</p>
-        <p><strong>From:</strong> ${feedbackUser.name} (${feedbackUser.department || 'Team'})</p>
-        <p><strong>Rating:</strong> ${ratingEmoji[feedback.rating] || '⭐'} ${feedback.rating.replace('_', ' ').toUpperCase()}</p>
-        ${feedback.comment ? `<p><strong>Comment:</strong> "${feedback.comment}"</p>` : ''}
-        ${feedback.suggestion ? `<p><strong>Suggestion:</strong> "${feedback.suggestion}"</p>` : ''}
-        <div style="margin: 24px 0; text-align: center;">
-          <a href="${materialUrl}" style="background: #059669; color: white; padding: 12px 28px; 
-             border-radius: 6px; text-decoration: none; font-size: 16px; display: inline-block;">
-            View All Feedback
-          </a>
-        </div>
-      </div>
-      <div style="background: #eee; padding: 12px; border-radius: 0 0 8px 8px; text-align: center; color: #888; font-size: 12px;">
-        BAS Internal Marketing Portal
-      </div>
-    </div>
-  `;
-
-  for (const user of marketingUsers) {
-    if (user.notifyEmail !== false && user.email) {
-      await sendEmailNotification(user.email, `💬 New Feedback on: ${material.title}`, emailHtml);
-    }
+  for (const d of directors) {
+    if (d.email) await sendEmail(d.email, `📋 Needs Your Approval: ${material.title}`, html);
   }
 };
 
-module.exports = {
-  sendEmailNotification,
-  sendWhatsAppNotification,
-  generateWhatsAppLink,
-  notifyNewMaterial,
-  notifyMarketingFeedback
+// 3. Notify admin when director approves/rejects
+const notifyAdminDirectorDecision = async (material, director, decision, note, admins) => {
+  const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
+  const url = `${appUrl}/material/${material._id}`;
+  const color = decision === 'approved' ? '#00C851' : decision === 'rejected' ? '#ef4444' : '#f97316';
+  const emoji = decision === 'approved' ? '✅' : decision === 'rejected' ? '❌' : '✏️';
+  const html = `
+  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+    <div style="background:${color};color:white;padding:20px;border-radius:8px 8px 0 0">
+      <h2 style="margin:0">${emoji} Director Decision: ${decision.replace('_',' ').toUpperCase()}</h2>
+    </div>
+    <div style="background:#f9f9f9;padding:24px;border:1px solid #e0e0e0">
+      <h3>${material.title}</h3>
+      <p><b>Decision by:</b> ${director.name}</p>
+      <p><b>Status:</b> ${emoji} ${decision.replace('_',' ')}</p>
+      ${note ? `<p><b>Note:</b> "${note}"</p>` : ''}
+      <div style="text-align:center;margin:20px 0">
+        <a href="${url}" style="background:#1a1a2e;color:white;padding:12px 24px;border-radius:6px;text-decoration:none">View Material</a>
+      </div>
+    </div>
+    <div style="background:#eee;padding:12px;border-radius:0 0 8px 8px;text-align:center;color:#888;font-size:12px">BAS Internal Marketing Portal</div>
+  </div>`;
+
+  for (const a of admins) {
+    if (a.email) await sendEmail(a.email, `${emoji} Director ${decision}: ${material.title}`, html);
+  }
 };
+
+module.exports = { notifyNewMaterial, notifyDirectors, notifyAdminDirectorDecision, sendEmail };

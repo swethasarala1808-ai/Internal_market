@@ -195,10 +195,7 @@ export default function MaterialDetail() {
                       📋 Sent to Director: {material.directorStatus || 'pending'}
                     </span>
                   )}
-                  <button className="btn btn-danger btn-sm" onClick={handleDelete}
-                    style={{ background: '#7f1d1d' }}>
-                    🗑️ Delete
-                  </button>
+
                 </div>
               </div>
             </div>

@@ -23,35 +23,61 @@ async function uploadToCloudinary(buffer, originalname, mimetype) {
   const timestamp = Math.round(Date.now() / 1000);
   const folder = 'bas_marketing';
 
-  // Resource type
+  // Resource type for Cloudinary
   let resourceType = 'raw';
   if (mimetype.startsWith('image/')) resourceType = 'image';
   else if (mimetype.startsWith('video/')) resourceType = 'video';
-  else if (mimetype === 'application/pdf') resourceType = 'image';
+  // PDF goes as 'image' resource type in Cloudinary
 
-  // Generate signature
+  // Generate proper signature
   const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
   const signature = crypto.createHash('sha1')
     .update(paramsToSign + apiSecret).digest('hex');
 
-  // Use URLSearchParams with base64 data URI
+  // Build multipart form using node's built-in
   const base64Data = buffer.toString('base64');
   const dataUri = `data:${mimetype};base64,${base64Data}`;
 
-  const body = new URLSearchParams();
-  body.append('file', dataUri);
-  body.append('api_key', apiKey);
-  body.append('timestamp', String(timestamp));
-  body.append('signature', signature);
-  body.append('folder', folder);
+  // Use form-data style with boundary
+  const boundary = '----FormBoundary' + Date.now();
+  const parts = [
+    `--${boundary}
+Content-Disposition: form-data; name="file"
 
+${dataUri}`,
+    `--${boundary}
+Content-Disposition: form-data; name="api_key"
+
+${apiKey}`,
+    `--${boundary}
+Content-Disposition: form-data; name="timestamp"
+
+${timestamp}`,
+    `--${boundary}
+Content-Disposition: form-data; name="signature"
+
+${signature}`,
+    `--${boundary}
+Content-Disposition: form-data; name="folder"
+
+${folder}`,
+    `--${boundary}--`
+  ];
+  const body = parts.join('
+');
+
+  const uploadType = mimetype === 'application/pdf' ? 'image' : resourceType;
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-    { method: 'POST', body: body.toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    `https://api.cloudinary.com/v1_1/${cloudName}/${uploadType}/upload`,
+    {
+      method: 'POST',
+      body,
+      headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` }
+    }
   );
   const data = await response.json();
-  console.log('Cloudinary result:', data.secure_url ? 'SUCCESS' : data.error?.message);
-  if (data.error) throw new Error('Upload failed: ' + data.error.message);
+  console.log('Cloudinary:', data.secure_url ? 'SUCCESS ' + data.secure_url.substring(0,60) : 'ERROR: ' + JSON.stringify(data.error));
+  if (data.error) throw new Error('Cloudinary upload failed: ' + data.error.message);
   return data.secure_url;
 }
 
@@ -137,8 +163,8 @@ router.post('/', auth, marketingOnly, upload.array('files', 10), async (req, res
     const material = new Material({ title, description, type, solution, uploadedBy: req.user._id, files });
     await material.save();
 
-    const internalUsers = await User.find({ role: 'internal', isActive: true });
-    notifyNewMaterial(material, solutionDoc, req.user, internalUsers).catch(console.error);
+    const allUsers = await User.find({ isActive: true });
+    notifyNewMaterial(material, solutionDoc, req.user, allUsers).catch(console.error);
     material.notificationSent = true;
     await material.save();
 
@@ -203,63 +229,43 @@ router.post('/:id/send-to-director', auth, async (req, res) => {
     }, { new: true }).populate('solution', 'name').populate('uploadedBy', 'name email');
     if (!material) return res.status(404).json({ error: 'Not found' });
 
-    // Notify all directors by email
-    const User = require('../models/User');
-    const { notifyNewMaterial } = require('../utils/notifications');
+    // Notify all directors
+    const { notifyDirectors } = require('../utils/notifications');
     const directors = await User.find({ role: 'director', isActive: true });
-    const nodemailer = require('nodemailer');
-    if (process.env.EMAIL_USER && directors.length > 0) {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com', port: 587, secure: false,
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-      });
-      const appUrl = process.env.FRONTEND_URL || 'https://internal-market.vercel.app';
-      for (const dir of directors) {
-        await transporter.sendMail({
-          from: `"BAS Portal" <${process.env.EMAIL_USER}>`,
-          to: dir.email,
-          subject: `📋 Material Needs Your Approval: ${material.title}`,
-          html: `<div style="font-family:Arial;max-width:600px;margin:0 auto">
-            <div style="background:#1a1a2e;color:white;padding:20px;border-radius:8px 8px 0 0">
-              <h2>📋 Material Awaiting Your Approval</h2>
-              <p style="opacity:0.8">BAS Internal Marketing Portal</p>
-            </div>
-            <div style="background:#f9f9f9;padding:24px;border:1px solid #e0e0e0">
-              <h3>${material.title}</h3>
-              <p><b>Type:</b> ${material.type}</p>
-              <p><b>Solution:</b> ${material.solution?.name}</p>
-              <p><b>Uploaded by:</b> ${material.uploadedBy?.name}</p>
-              <p><b>Sent by:</b> ${req.user.name}</p>
-              <div style="text-align:center;margin:24px 0">
-                <a href="${appUrl}/material/${material._id}" style="background:#1a1a2e;color:white;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;display:inline-block">
-                  👉 Review & Approve
-                </a>
-              </div>
-            </div>
-          </div>`
-        }).catch(console.error);
-      }
-    }
+    notifyDirectors(material, material.solution, req.user, directors).catch(console.error);
     res.json({ material, message: 'Sent to director!' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/materials/:id/director-review - Director approves or rejects
+// POST /api/materials/:id/director-review - Director approves, rejects, or requests revision
 router.post('/:id/director-review', auth, async (req, res) => {
   try {
     if (!['admin', 'director'].includes(req.user.role)) return res.status(403).json({ error: 'Director only' });
-    const { decision, note } = req.body; // decision: 'approved' or 'rejected'
+    const { decision, note } = req.body;
+    const validDecisions = ['approved', 'rejected', 'revision_needed'];
+    if (!validDecisions.includes(decision)) return res.status(400).json({ error: 'Invalid decision' });
+    
     const update = {
       directorStatus: decision,
-      directorNote: note,
+      directorNote: note || '',
       directorReviewedAt: new Date(),
       directorReviewedBy: req.user._id,
-      status: decision === 'approved' ? 'director_approved' : 'director_rejected'
+      status: decision === 'approved' ? 'director_approved' : decision === 'rejected' ? 'director_rejected' : 'revision_needed'
     };
-    if (decision === 'approved') { update.isApproved = true; update.approvedAt = new Date(); update.approvedBy = req.user._id; }
+    if (decision === 'approved') {
+      update.isApproved = true;
+      update.approvedAt = new Date();
+      update.approvedBy = req.user._id;
+    }
     const material = await Material.findByIdAndUpdate(req.params.id, update, { new: true })
       .populate('solution', 'name').populate('uploadedBy', 'name email');
     if (!material) return res.status(404).json({ error: 'Not found' });
+
+    // Notify admins about director decision
+    const { notifyAdminDirectorDecision } = require('../utils/notifications');
+    const admins = await User.find({ role: 'admin', isActive: true });
+    notifyAdminDirectorDecision(material, req.user, decision, note, admins).catch(console.error);
+
     res.json({ material, message: `Material ${decision} by director!` });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
