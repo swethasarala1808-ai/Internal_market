@@ -38,10 +38,10 @@ const AppRoutes = () => {
         <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/materials" element={<PrivateRoute><MaterialList /></PrivateRoute>} />
         <Route path="/material/:id" element={<PrivateRoute><MaterialDetail /></PrivateRoute>} />
-        <Route path="/upload" element={<PrivateRoute><MarketingRoute><UploadMaterial /></MarketingRoute></PrivateRoute>} />
+        <Route path="/upload" element={<PrivateRoute><UploadMaterial /></PrivateRoute>} />
         <Route path="/library" element={<PrivateRoute><ApprovedLibrary /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-        <Route path="/solutions" element={<PrivateRoute><MarketingRoute><Solutions /></MarketingRoute></PrivateRoute>} />
+        <Route path="/solutions" element={<PrivateRoute><Solutions /></PrivateRoute>} />
         <Route path="/staff" element={<PrivateRoute><StaffList /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
         <Route path="/director" element={<PrivateRoute><DirectorView /></PrivateRoute>} />

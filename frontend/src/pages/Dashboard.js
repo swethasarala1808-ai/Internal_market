@@ -101,13 +101,7 @@ export default function Dashboard() {
             <Link to="/library" className="btn btn-secondary" style={{ justifyContent: 'center' }}>
               ✅ Approved Library
             </Link>
-            {user?.role === 'marketing' && (
-              <Link to="/staff" style={{ textDecoration: 'none' }}>
-                <div className="btn btn-outline" style={{ width: '100%', padding: '12px 16px', marginBottom: 8, justifyContent: 'flex-start' }}>
-                  👥 View Internal Staff
-                </div>
-              </Link>
-            )}
+
             <Link to="/profile" className="btn btn-outline" style={{ justifyContent: 'center' }}>
               ⚙️ Notification Settings
             </Link>
